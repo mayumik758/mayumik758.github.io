@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <header>
+      <div class="chattitle">
+        <p>宇宙人とチャット</p>
+        <img src="alien1.png" alt="" />
+      </div>
+    </header>
+    <main>
+      <div class="wrap">
+        <div>
+          <textarea name="" id="text" cols="40" rows="3"></textarea>
+        </div>
+
+        <div>
+          <button id="send">送信</button>
+        </div>
+
+        <div id="output" overflow-y: scroll></div>
+      </div>
+    </main>
+    <footer></footer>
+    <script src="js/jquery-2.1.3.min.js"></script>
+
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/7.14.3/firebase.js"></script>
+
+    <!-- TODO: Add SDKs for Firebase products that you want to use
+      https://firebase.google.com/docs/web/setup#available-libraries -->
+
+    <script>
+      // Your web app's Firebase configuration
+      var firebaseConfig = {
+        apiKey: "AIzaSyDOd9jSND84UKwwJ7GILotkwE718hxg8vw",
+        authDomain: "myproject-65e9b.firebaseapp.com",
+        databaseURL: "https://myproject-65e9b.firebaseio.com",
+        projectId: "myproject-65e9b",
+        storageBucket: "myproject-65e9b.appspot.com",
+        messagingSenderId: "531177602274",
+        appId: "1:531177602274:web:380b29d86a5b85a7ef72bb",
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+
+      const newPostRef = firebase.database().ref();
+
+      // *************firebaseに送信***************
+      $("#send").on("click", function () {
+        // 1.日時を設定
+        var today = new Date();
+        var mm = ("0" + (today.getMonth() + 1)).slice(-2);
+        var dd = ("0" + today.getDate()).slice(-2);
+        var mi = ("0" + today.getMinutes()).slice(-2);
+        var d = `${today.getFullYear()}-${mm}-${dd}`;
+        var t = `${today.getHours()}:${mi}`;
+        var now = d + " " + t;
+        console.log(now);
+
+        // 2. テキストと時刻を送信
+        newPostRef.push({
+          name: "You",
+          text: $("#text").val(),
+          time: now,
+        });
+
+        $("#text").val("");
+
+        // 3. ランダムな文字列で宇宙人の返信をつくる
+        var len = 20;
+        var str = "abcdefghijklmnopqrstuvwxyz123456789@?%&#$*!?";
+        var strLen = str.length;
+        var result = "";
+
+        for (var i = 0; i < len; i++) {
+          result += str[Math.floor(Math.random() * strLen)];
+        }
+        console.log(result);
+
+        // 4.宇宙人の返信と時刻を、３秒後に送信(少し遅れて表示されるように）
+        setTimeout(function () {
+          newPostRef.push({
+            name: "宇宙人",
+            text: result,
+            time: now,
+          });
+        }, 3000);
+      });
+
+      // *************firebaseから受信**************
+      newPostRef.on("child_added", function (data) {
+        let v = data.val();
+        console.log(v);
+
+        // 1.自分（You）の書き込みは右に書き出す
+        if (v.name === "You") {
+          let str = `<div class="chatbox-right"><div class="name">${v.name}</div><div class="time">${v.time}</div><div class="text">${v.text}</div></div>`;
+          $("#output").append(str);
+          // 2.宇宙人の書き込みは左に
+        } else {
+          let str = `<div class="chatbox-left"><div class="name">${v.name}<img src="alien1.png"></div><div class="time">${v.time}</div><div class="text">${v.text}</div></div>`;
+          $("#output").append(str);
+        }
+      });
+    </script>
+  </body>
+</html>
